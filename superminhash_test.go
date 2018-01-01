@@ -3,6 +3,7 @@ package superminhash
 import (
 	"fmt"
 	"math/rand"
+	"strconv"
 	"testing"
 	"time"
 
@@ -88,4 +89,37 @@ func TestComplete(t *testing.T) {
 
 		fmt.Println(sim1, sim2)
 	}
+}
+
+func TestComplete2(t *testing.T) {
+	var (
+		src     = rand.NewSource(time.Now().UnixNano())
+		rand    = rand.New(src)
+		length  = rand.Int63n(10000)
+		s1, _   = NewSignature(16)
+		s2, _   = NewSignature(16)
+		m1      = minhash.NewMinWise(mhash1, mhash2, 16)
+		m2      = minhash.NewMinWise(mhash1, mhash2, 16)
+		modRate = rand.Float64()
+		numMods = int64(0)
+	)
+
+	for i := 0; i < int(length); i++ {
+		s := strconv.Itoa(i)
+		s1.Push([]byte(s))
+		m1.Push([]byte(s))
+		if rand.Float64() > modRate {
+			s += "_"
+			numMods++
+		}
+		s2.Push([]byte(s))
+		m2.Push([]byte(s))
+	}
+
+	sim1, _ := s1.Similarity(s2)
+	t.Log(sim1)
+	sim2 := m1.Similarity(m2)
+	t.Log(sim2)
+
+	t.Log(numMods, length, 1-float64(numMods)/float64(length))
 }
