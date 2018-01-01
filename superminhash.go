@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/dgryski/go-pcgr"
-
-	"github.com/dgryski/go-metro"
+	metro "github.com/dgryski/go-metro"
+	pcgr "github.com/dgryski/go-pcgr"
 )
 
 // Signature ...
@@ -67,8 +66,8 @@ func (sig *Signature) Push(b []byte) {
 
 		sig.p[j], sig.p[k] = sig.p[k], sig.p[j]
 		newVal := r + float32(sig.p[j])
-		if newVal < sig.values[j] {
-			sig.values[j] = newVal
+		if newVal < sig.values[sig.p[j]] {
+			sig.values[sig.p[j]] = newVal
 		}
 	}
 	sig.i++
