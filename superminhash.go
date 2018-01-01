@@ -33,12 +33,27 @@ func (sig *Signature) Length() int {
 
 // Push ...
 func (sig *Signature) Push(b []byte) {
-	x := metro.Hash64(b, 42)
-	rnd := pcgr.New(int64(x), 0)
-	for i, v := range sig.values {
+	// initialize pseudo-random generator with seed d
+	d := metro.Hash64(b, 42)
+	rnd := pcgr.New(int64(d), 0)
+
+	// (p0,p1,...,pm−1)←(0,1,...,m−1)
+	p := make([]uint8, len(sig.values))
+	for i := range p {
+		p[i] = uint8(i)
+	}
+
+	for j := range p {
+		offset := rnd.Next() % uint32(len(p)-j)
+		k := uint32(j) + offset
+		p[j], p[k] = p[k], p[j]
+	}
+
+	for j, v := range sig.values {
 		r := float32(rnd.Next()) / float32(math.MaxUint32)
-		if r < v {
-			sig.values[i] = r
+		newVal := r + float32(p[j])
+		if newVal < v {
+			sig.values[j] = newVal
 		}
 	}
 }
