@@ -10,9 +10,11 @@ import (
 
 // Signature ...
 type Signature struct {
-	values []float32
+	values []float64
 	p      []uint16
 	q      []int64
+	b      []int64
+	a      int64
 	i      int64
 }
 
@@ -21,19 +23,23 @@ func NewSignature(length uint16) (*Signature, error) {
 	if length == 0 {
 		return nil, fmt.Errorf("length has to be >= 1")
 	}
-	values := make([]float32, length)
+	values := make([]float64, length)
 	p := make([]uint16, length)
 	q := make([]int64, length)
+	b := make([]int64, length)
 	for i := range values {
 		values[i] = math.MaxUint32
 		q[i] = -1
 		p[i] = uint16(i)
+		b[i] = 0
 	}
+	b[length-1] = int64(length)
 	return &Signature{
 		values: values,
 		p:      p,
 		q:      q,
 		i:      0,
+		a:      int64(length) - 1,
 	}, nil
 }
 
@@ -50,7 +56,7 @@ func (sig *Signature) Push(b []byte) {
 	rnd := pcgr.New(int64(d), 0)
 
 	for j := range sig.values {
-		r := float32(rnd.Next()) / float32(math.MaxUint32)
+		r := float64(rnd.Next()) / float64(math.MaxUint32)
 		offset := rnd.Next() % uint32(len(sig.values)-j)
 		k := uint32(j) + offset
 
@@ -65,10 +71,8 @@ func (sig *Signature) Push(b []byte) {
 		}
 
 		sig.p[j], sig.p[k] = sig.p[k], sig.p[j]
-		newVal := r + float32(sig.p[j])
-		if newVal < sig.values[sig.p[j]] {
-			sig.values[sig.p[j]] = newVal
-		}
+		rj := r + float64(j)
+		sig.values[sig.p[j]] = math.Min(sig.values[sig.p[j]], float64(rj))
 	}
 	sig.i++
 }

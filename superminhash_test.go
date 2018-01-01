@@ -19,15 +19,15 @@ func TestSimilarity(t *testing.T) {
 		src     = rand.NewSource(time.Now().UnixNano())
 		rand    = rand.New(src)
 		length  = rand.Int63n(10000)
-		s1      = &Signature{values: make([]float32, length)}
-		s2      = &Signature{values: make([]float32, length)}
+		s1      = &Signature{values: make([]float64, length)}
+		s2      = &Signature{values: make([]float64, length)}
 		modRate = rand.Float64()
 		numMods float64
 	)
 
 	// modify s2
 	for i := range s1.values {
-		s1.values[i] = rand.Float32()
+		s1.values[i] = rand.Float64()
 		s2.values[i] = s1.values[i]
 		if rand.Float64() >= modRate {
 			s2.values[i]++
@@ -45,8 +45,8 @@ func TestSimilarity(t *testing.T) {
 }
 func TestSimilarityError(t *testing.T) {
 	var (
-		s1 = &Signature{values: make([]float32, 10)}
-		s2 = &Signature{values: make([]float32, 11)}
+		s1 = &Signature{values: make([]float64, 10)}
+		s2 = &Signature{values: make([]float64, 11)}
 	)
 
 	if _, err := s1.Similarity(s2); err == nil {
